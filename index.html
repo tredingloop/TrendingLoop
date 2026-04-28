@@ -10,26 +10,25 @@
     <style>
         :root { --black: #000; --white: #fff; --gold: #d4af37; --bg: #f5f6f8; --green: #00b894; }
         body { font-family: 'Montserrat', sans-serif; background: var(--bg); margin: 0; padding-bottom: 30px; overflow-x: hidden; }
-        
-        /* Navbar */
         .navbar { background: #000; color: #fff; padding: 18px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 1000; }
         .nav-logo { font-weight: 900; letter-spacing: 4px; font-size: 18px; text-transform: uppercase; cursor: pointer; }
         .cart-icon { font-size: 22px; cursor: pointer; position: relative; }
         .cart-badge { position: absolute; top: -8px; right: -8px; background: var(--gold); color: #000; font-size: 10px; padding: 2px 5px; border-radius: 50%; font-weight: 900; }
-
-        /* Sidebar */
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: #fff; z-index: 2000; transition: 0.3s; padding: 30px 20px; box-sizing: border-box; }
         .sidebar.active { left: 0; }
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; z-index: 1500; }
         .overlay.active { display: block; }
-        .sidebar-link { display: block; padding: 15px 0; color: #000; text-decoration: none; font-weight: 700; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #f0f0f0; }
-
-        /* Top Slider */
+        .sidebar-link { display: block; padding: 15px 0; color: #000; text-decoration: none; font-weight: 700; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+        .trust-card { margin-top: 30px; padding: 15px; background: #000; border-radius: 15px; color: #fff; text-align: center; }
+        .trust-val { color: var(--gold); font-weight: 900; font-size: 18px; }
+        .trust-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; margin-bottom: 10px; }
+        #termsModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; justify-content: center; align-items: center; padding: 20px; }
+        .terms-content { background: #fff; width: 100%; max-width: 600px; height: 80vh; border-radius: 20px; padding: 25px; overflow-y: auto; position: relative; }
+        .terms-text { font-size: 12px; line-height: 1.8; color: #444; text-align: justify; }
+        .close-terms { position: sticky; top: -10px; float: right; background: #000; color: #fff; border: none; padding: 5px 15px; border-radius: 10px; cursor: pointer; font-weight: 800; z-index: 10; }
         #mainSlider { background: #111; color: #fff; height: 45px; display: flex; align-items: center; overflow: hidden; position: relative; }
         .slider-track { display: flex; transition: 0.6s ease-in-out; width: 100%; position: absolute; }
         .slide { min-width: 100%; text-align: center; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-
-        /* Home View Grid */
         #homeView { padding: 15px; }
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .product-card { background: #fff; border-radius: 20px; overflow: hidden; border: 1px solid #f0f0f0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
@@ -38,16 +37,12 @@
         .p-shop-tag { font-size: 9px; color: var(--gold); font-weight: 800; margin-bottom: 5px; display: block; }
         .p-name { font-weight: 700; font-size: 11px; color: #666; text-transform: uppercase; }
         .p-price { font-family: 'Oswald', sans-serif; font-size: 18px; color: #000; margin-top: 5px; display: block; }
-
-        /* Detailed View & Shop Branding */
         #detailView { display: none; background: #fff; }
         .shop-banner { display: flex; align-items: center; gap: 10px; padding: 15px; background: #fafafa; border-bottom: 1px solid #eee; }
         .shop-logo-circle { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
         .angle-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; }
         .angle-img { min-width: 100%; height: 420px; object-fit: cover; }
         .buy-btn { width: 100%; background: #000; color: #fff; border: none; padding: 20px; border-radius: 20px; font-weight: 800; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; }
-
-        /* Tracking Card */
         #trackView { display: none; padding: 15px; }
         .meesho-card { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border-left: 5px solid var(--gold); }
         .stepper { margin: 25px 0; position: relative; }
@@ -58,25 +53,45 @@
         .dot { width: 28px; height: 28px; background: #fff; border: 2px solid #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
         .dot.done { border-color: var(--green); color: var(--green); font-weight: 900; }
         .step-labels { display: flex; justify-content: space-between; margin-top: 10px; font-size: 8px; font-weight: 900; color: #aaa; text-transform: uppercase; }
-
-        /* Checkout Modal */
         #orderModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: flex-end; }
         .m-content { background: #fff; padding: 30px; border-radius: 30px 30px 0 0; width: 100%; max-width: 500px; text-align: center; }
         input, select { width: 100%; padding: 16px; margin: 8px 0; border: 1px solid #eee; border-radius: 15px; outline: none; background: #f9f9f9; box-sizing: border-box; font-family: inherit; font-weight: 600; }
     </style>
 </head>
 <body>
-
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
     <div class="sidebar" id="sidebar">
         <div style="font-weight:900; font-size:20px; margin-bottom:20px; border-bottom:2px solid #000;">MENU</div>
         <div class="sidebar-link" onclick="showHome(); toggleMenu();">Home 🏠</div>
-        
         <a href="agent-join.html" class="sidebar-link" style="color: #2563eb;">Become an Agent 💰</a>
         <a href="agent.html" class="sidebar-link">Agent Login 🔐</a>
-        
         <a href="portal.html" class="sidebar-link">Partner Registration 🚀</a>
         <a href="portal.html" class="sidebar-link">Vendor Console 🔑</a>
+        <div class="sidebar-link" onclick="openTerms()" style="font-size: 12px; color: #888;">Terms & Conditions 📜</div>
+        <div class="trust-card">
+            <div class="trust-val">10,000+</div>
+            <div class="trust-label">SUCCESSFUL SALES</div>
+            <div class="trust-val">7,000+</div>
+            <div class="trust-label">VERIFIED VENDORS</div>
+            <div style="margin-top: 15px; font-size: 9px; color: #555; font-weight: 800;">TRENDING LOOP OFFICIAL</div>
+        </div>
+    </div>
+    <div id="termsModal">
+        <div class="terms-content">
+            <button class="close-terms" onclick="closeTerms()">CLOSE</button>
+            <h2 style="font-weight:900;">Terms & Conditions</h2>
+            <div class="terms-text">
+                <p><strong>1. Introduction:</strong> Welcome to Trending Loop. By using this platform, you agree to our policies.</p>
+                <p><strong>2. Sales Disclaimer:</strong> Trending Loop is a marketplace service provider. The company <strong>does not guarantee any sales</strong>. We are <strong>NOT responsible</strong> if a vendor's products do not sell or achieve expected profits.</p>
+                <p><strong>3. Vendor Responsibility:</strong> All items listed must be legal and authentic. Quality disputes are strictly between the vendor and the buyer.</p>
+                <p><strong>4. Registration Fees:</strong> Fees like ₹799 are for digital setup and platform maintenance only. This is non-refundable and does not act as a sales guarantee.</p>
+                <p><strong>5. Logistics:</strong> We provide delivery assistance, but are not liable for external delays or damages during transit.</p>
+                <p><strong>6. Platform Integrity:</strong> Providing misleading prices or descriptions will result in immediate account termination.</p>
+                <p><strong>7. No Liability:</strong> Trending Loop shall not be liable for any indirect, incidental, or consequential damages resulting from the use of our services.</p>
+                <p><strong>8. Updates:</strong> We reserve the right to modify these terms at any time without prior notice.</p>
+                <p style="text-align:center; font-weight:bold; margin-top:20px;">© 2026 Trending Loop Official</p>
+            </div>
+        </div>
     </div>
 
     <div class="navbar">
@@ -109,7 +124,7 @@
         <div class="shop-banner">
             <img id="detShopLogo" src="" class="shop-logo-circle">
             <div>
-                <b id="detShopName" style="font-size:14px; text-transform:uppercase;">Loading Store...</b><br>
+                <b id="detShopName" style="font-size:14px; text-transform:uppercase;">Loading...</b><br>
                 <small style="color:var(--green); font-weight:800; font-size:10px;">✓ VERIFIED MERCHANT</small>
             </div>
         </div>
@@ -119,8 +134,7 @@
             <div id="detPrice" style="font-size:28px; margin:10px 0; font-family:'Oswald';"></div>
             <div id="detDesc" style="font-size:13px; color:#666; border-top:1px solid #eee; padding-top:15px; line-height:1.6;"></div>
             <button class="buy-btn" onclick="openOrderModal()" style="margin-top:20px;">PLACE ORDER NOW</button>
-            <div style="margin-top:40px; font-weight:900; font-size:12px; border-bottom:2px solid #000; display:inline-block; margin-bottom:15px;">MORE FROM THIS STORE</div>
-            <div class="grid" id="suggestionGrid"></div>
+            <div class="grid" id="suggestionGrid" style="margin-top:30px;"></div>
         </div>
     </div>
 
@@ -130,23 +144,16 @@
             <input type="text" id="custN" placeholder="Full Name">
             <input type="number" id="custP" placeholder="WhatsApp Number">
             <input type="text" id="custA" placeholder="Full Delivery Address">
-            
             <select id="custSize">
                 <option value="" disabled selected>Select Size</option>
-                <option value="S">Small (S)</option>
-                <option value="M">Medium (M)</option>
-                <option value="L">Large (L)</option>
-                <option value="XL">Extra Large (XL)</option>
-                <option value="Free Size">Free Size</option>
+                <option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option><option value="Free Size">Free Size</option>
             </select>
-            
             <select id="payMethod" onchange="togglePay()"></select>
             <div id="qrSection" style="display:none; margin-top:10px;"><img src="" id="qrImg" style="width:150px;"></div>
             <button class="buy-btn" onclick="finalizeOrder()" style="margin-top:20px;">CONFIRM ORDER</button>
             <div onclick="closeModal()" style="margin-top:15px; color:#bbb; cursor:pointer; font-weight:700;">CANCEL</div>
         </div>
     </div>
-
     <script>
         const firebaseConfig = { apiKey: "AIzaSyD0pWvaqGlQH93w3ddooHQ6Yq1-6GHus6Y", authDomain: "trending-loop.firebaseapp.com", projectId: "trending-loop" };
         firebase.initializeApp(firebaseConfig);
@@ -154,6 +161,8 @@
         let allP = [], activeP = null;
 
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
+        function openTerms() { document.getElementById('termsModal').style.display = 'flex'; toggleMenu(); }
+        function closeTerms() { document.getElementById('termsModal').style.display = 'none'; }
 
         async function init() {
             const snap = await db.collection("products").orderBy("time", "desc").get();
@@ -244,24 +253,21 @@
 
         async function finalizeOrder() {
             const n = document.getElementById('custN').value, ph = document.getElementById('custP').value, ad = document.getElementById('custA').value, pm = document.getElementById('payMethod').value, sz = document.getElementById('custSize').value;
-            if(!n || !ph || !ad || !sz) return alert("Please fill all details including size!");
+if(!n || !ph || !ad || !sz) return alert("Please fill all details!");
 
             const vSnap = await db.collection("vendors").where("shop", "==", activeP.store).get();
             let vPh = "9897180748"; vSnap.forEach(v => vPh = v.data().phone);
 
-            // SAVING SIZE TO FIREBASE
             const res = await db.collection("orders").add({ item: activeP.name, size: sz, customer: n, phone: ph, address: ad, payment: pm, price: activeP.price, store: activeP.store, status: "Pending", time: new Date() });
 
             let myOrders = JSON.parse(localStorage.getItem("myOrders") || "[]");
             myOrders.push(res.id);
             localStorage.setItem("myOrders", JSON.stringify(myOrders));
 
-            // ADDING SIZE TO WHATSAPP MESSAGE
-            const msg = `*NEW ORDER FOR ${activeP.store.toUpperCase()}* 📦\n\n*Order ID:* #${res.id.slice(-6)}\n*Item:* ${activeP.name}\n*Size:* ${sz}\n*Customer:* ${n}\n*Phone:* ${ph}\n*Address:* ${ad}\n\n_Powered by Trending Loop_`;
+            const msg = `*NEW ORDER FOR ${activeP.store.toUpperCase()}* 📦\n\n*Order ID:* #${res.id.slice(-6)}\n*Item:* ${activeP.name}\n*Size:* ${sz}\n*Customer:* ${n}\n*Phone:* ${ph}\n*Address:* ${ad}`;
             window.open(`https://wa.me/91${vPh}?text=${encodeURIComponent(msg)}`, '_blank');
             showTrack();
         }
-
         async function fetchByPhone() {
             const ph = document.getElementById('trackPhone').value;
             const snap = await db.collection("orders").where("phone", "==", ph).get();
